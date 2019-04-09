@@ -1,80 +1,106 @@
 import { getQueryString } from './helpers'
 
-export const url = 'https://www.forverkliga.se/JavaScript/api/crud.php'
+const url = 'https://www.forverkliga.se/JavaScript/api/crud.php?'
 
-const requestApiKey = async () => {
-  const cachedKey = localStorage.getItem('apiKey')
 
-  if (cachedKey) {
-    return cachedKey
+export function addBook(e) {
+  return
+  // Spara nyckeln i en vaiabel ifall den finns i localStorage annars blir värdet null
+  const key = localStorage.getItem('apiKey')
+  // Hämta värdena av inputfälten
+  const title = document.getElementById('title').value
+  const author = document.getElementById('author').value
+
+
+  // Kolla ifall vi har en api-nyckel (key !== null)
+  if (key) {
+    // Har vi nyckeln behöver vi bara göra ett request
+    request(`key=${key}&op=insert&title=${title}&author=${author}`, function(
+      data
+    ) {
+      console.log(data)
+    })
   } else {
-    try {
-      const apiKey = await fetch(`${url}?requestKey`)
-        .then(response => response.json())
-        .then(result => result.key)
+    // Har vi inte nyckeln behöver vi hämta ny nyckel från apiet
+    // getApiKey tar emot en callback == anonym funktion i det här fallet som kör ett request när
+    // ny api-nyckel hämtats från apiet
+    getApiKey(function(key) {
+      request(`key=${key}&op=insert&title=${title}&author=${author}`, function(
+      data
+    ) {
+      console.log(data)
+    })
+    })
+  }
+}
+////////////////////////
+// Funcktion som körs när användaren trycker på knappen för att hämta lista med böcker
+export function fetchBooks(e) {
+  return
+   // Spara nyckeln i en vaiabel ifall den finns i localStorage annars blir värdet null
+  const key = localStorage.getItem('apiKey')
 
-      localStorage.setItem('apiKey', apiKey)
-      return apiKey
-    } catch (err) {
-      return err
+  // Kolla ifall vi har en api-nyckel (key !== null)
+  if (key) {
+    // Har vi nyckeln behöver vi bara göra ett request
+    request(`key=${key}&op=select`, function(data) {
+        console.log(data)
+      })
+  } else {
+    // Har vi inte nyckeln behöver vi hämta ny nyckel från apiet
+    // getApiKey tar emot en callback == anonym funktion i det här fallet som kör ett request när
+    // ny api-nyckel hämtats från apiet
+    getApiKey(function(key) {
+      request(`key=${key}&op=select`, function(data) {
+        console.log(data)
+      })
+    })
+  }
+}
+
+// Funktion för att göra ett request mot apiet
+// Tar emot en sträng (qs) som används som querystring för requesten
+// Tar emot en callback (funktion) som körs när svaret från servern kommit (cb)
+// Tar emot ett nummer som parameter som indikerar en gräns på hur många försöka som får göras (limit)
+function request(qs, cb, limit = 10) {
+  // Initiera ett request med basurl och querystring
+  fetch(`${url}${qs}`)
+    .then(function(response) {
+      // Konverta svaret till JavaScript-objekt
+      return response.json()
+    })
+    .then(function(data) {
+      // Kolla hur svaret ser ut från apiet
+      // Om operationen lyckades så kör funktionen cb
+      if (data.status === 'success') {
+        if (cb) {
+          cb(data)
+        }
+      // Lyckas inte operationen och gränsen för hur många requests som får göras inte är nådd
+      // Gör ett nytt request
+      } else if (limit > 0) {
+        request(qs, cb, limit - 1)
+      // Om operationen inte lyckats innan gränsen för antalet requests uppnåtts
+      // Skicka inte ett nytt request utan bara skriv ut felmeddelande i konsolen
+      } else {
+        console.log(data.message, 'tries:', limit)
+      }
+    })
+    .catch(function(error) {
+      console.log(error)
+    })
+}
+
+// Funktion för att hämta en ny api-nyckel
+// Tar emot en funktion (callback) som parameter som körs om operationen lyckas
+function getApiKey(callback) {
+  request('requestKey', function(data) {
+    // Spara api-nyckel i localStorage
+    localStorage.setItem('apiKey', data.key)
+
+    // Om callback är definerad kör callback
+    if (callback) {
+      callback(data.key)
     }
-  }
-}
-
-const sendRequest = async (params, limit = 10) => {
-  const key = await requestApiKey()
-  const qs = getQueryString({
-    ...params,
-    key
   })
-  const { status, message, ...response } = await fetch(`${url}?${qs}`).then(
-    response => response.json()
-  )
-
-  if (status === 'success') {
-    return { ...response, status }
-  } else if (limit > 0 && status === 'error') {
-    console.log({ limit, message })
-    return sendRequest(params, limit - 1)
-  } else {
-    return { status, message }
-  }
-}
-
-export const fetchBooks = async () => {
-  const params = {
-    op: 'select'
-  }
-
-  return await sendRequest(params)
-}
-
-export const addBook = async (title, author, limit = 10) => {
-  const params = {
-    op: 'insert',
-    title,
-    author
-  }
-
-  return await sendRequest(params)
-}
-
-export const removeBook = async id => {
-  const params = {
-    id,
-    op: 'delete'
-  }
-
-  return await sendRequest(params)
-}
-
-export const updateBook = async (id, title, author) => {
-  const params = {
-    id,
-    title,
-    author,
-    op: 'update'
-  }
-
-  return await sendRequest(params)
 }

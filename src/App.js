@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import Header from './components/ui/Header/Header'
-import { fetchBooks, addBook } from './utils/api';
+import { addBook, fetchBooks } from './utils/api';
 
 class App extends Component {
   constructor(props) {
@@ -14,12 +14,12 @@ class App extends Component {
   }
 
   handleSubmit(event) {
-    // alert('foo bar ' + this.state._title + ' ' + this.state._author);
+    alert('Du har lagt till ' + this.state._title + ' ' + this.state._author);
     // books = this.state._title + ' ' + this.state._author;
     this.setState({
       books: [...this.state.books, { author: this.state._author, title: this.state._title }]
     })
-    addBook(this._title, this._author);
+
     event.preventDefault();
   }
 
@@ -35,9 +35,6 @@ class App extends Component {
     console.log(result.status);
   }
 
-  componentDidMount() {
-    fetchBooks().then(this.handleBooks);
-  }
 
   render() {
     return (
@@ -91,8 +88,8 @@ class App extends Component {
                   <strong className="title">Titel</strong>
 
                   <div className="author">Författare</div>
-                  <ul className="titles">{book.title}</ul>
-                  <div className="authors">{book.author}</div>
+                  <ul className="titles"></ul>
+                  <div className="authors"></div>
                   <div className="buttons">
                     <button type="button" className="btn btn-success">
                       Editera
