@@ -4,7 +4,6 @@ const url = 'https://www.forverkliga.se/JavaScript/api/crud.php?'
 
 
 export function addBook(e) {
-  return
   // Spara nyckeln i en vaiabel ifall den finns i localStorage annars blir värdet null
   const key = localStorage.getItem('apiKey')
   // Hämta värdena av inputfälten
@@ -36,7 +35,6 @@ export function addBook(e) {
 ////////////////////////
 // Funcktion som körs när användaren trycker på knappen för att hämta lista med böcker
 export function fetchBooks(e) {
-  return
    // Spara nyckeln i en vaiabel ifall den finns i localStorage annars blir värdet null
   const key = localStorage.getItem('apiKey')
 
