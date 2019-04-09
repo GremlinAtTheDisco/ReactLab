@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
 import Header from './components/ui/Header/Header'
-import { fetchBooks } from './utils/api';
+import { fetchBooks, addBook } from './utils/api';
 
 class App extends Component {
   constructor(props) {
     super(props);
-    this.state = { _title: '', _author: '', _status: '' };
+    this.state = { _title: '', _author: '', _status: '', books: []};
 
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChangeTitle = this.handleChangeTitle.bind(this);
@@ -14,7 +14,12 @@ class App extends Component {
   }
 
   handleSubmit(event) {
-    alert('foo bar ' + this.state._title + ' ' + this.state._author);
+    // alert('foo bar ' + this.state._title + ' ' + this.state._author);
+    // books = this.state._title + ' ' + this.state._author;
+    this.setState({
+      books: [...this.state.books, { author: this.state._author, title: this.state._title }]
+    })
+    addBook(this._title, this._author);
     event.preventDefault();
   }
 
@@ -29,10 +34,11 @@ class App extends Component {
     this.setState({ _status: result.status });
     console.log(result.status);
   }
+
   componentDidMount() {
     fetchBooks().then(this.handleBooks);
-    
   }
+
   render() {
     return (
       <div className="App">
@@ -69,6 +75,7 @@ class App extends Component {
               <button
                 type="submit"
                 className="btn btn-primary btn-lg btn-block"
+                onClick = {this.handleSubmit}
               >
                 Skicka
               </button>
@@ -79,11 +86,13 @@ class App extends Component {
           <div className="container">
             <div className="col-12">
               <ul className="list-group">
+              {this.state.books.map(book => (
                 <li className="list-item list-group-item d-flex align-items-center">
                   <strong className="title">Titel</strong>
 
                   <div className="author">Författare</div>
-
+                  <ul className="titles">{book.title}</ul>
+                  <div className="authors">{book.author}</div>
                   <div className="buttons">
                     <button type="button" className="btn btn-success">
                       Editera
@@ -91,8 +100,9 @@ class App extends Component {
                     <button type="button" className="btn btn-danger">
                       Ta bort
                     </button>
+
                   </div>
-                </li>
+                </li>))}
               </ul>
             </div>
           </div>
